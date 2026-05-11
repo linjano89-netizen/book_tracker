@@ -218,14 +218,16 @@ function selectBook(idx) {
   let guessed = '기타';
   if (/소설|novel|fiction|추리|미스터리|스릴러|판타지|sf |로맨스|단편|장편|주인공|등장인물|감동소설|문학상|데뷔작|작가의 첫/.test(text))
     guessed = '소설';
-  else if (/습관|성공|자기계발|자기관리|생산성|목표|마인드|리더십|동기|처세|인간관계|화술|설득|대화법|커뮤니케이션|재테크|투자|부자/.test(text))
+  else if (/습관|성공|자기계발|자기관리|생산성|목표|마인드|리더십|동기|처세|인간관계|화술|설득|대화법|커뮤니케이션|자수성가|부의|돈의 법칙/.test(text))
     guessed = '자기계발';
+  else if (/경제|경영|재테크|투자|주식|부동산|마케팅|회계|금융|자본주의|무역|창업|스타트업|비즈니스|pr |광고|브랜드|소비|시장/.test(text))
+    guessed = '경제/경영';
   else if (/프로그래밍|개발|코딩|알고리즘|인공지능|ai |머신러닝|데이터|과학|기술|수학|의학|공학|it /.test(text))
     guessed = '과학기술';
   else if (/역사|철학|사상|문명|인문학|고대|중세|근대|현대사/.test(text))
     guessed = '역사철학';
   else if (/에세이|일기|회고|르포|인터뷰|기행|여행기|산문/.test(text))
-    guessed = '비소설';
+    guessed = '에세이';
 
   const genreSelect = document.getElementById('f-genre');
   genreSelect.value = guessed;
@@ -426,10 +428,10 @@ function _drawCalibInner(sorted) {
 }
 
 function drawGenrePie(books) {
-  const genres = ['소설', '비소설', '자기계발', '과학기술', '역사철학', '기타'];
+  const genres = ['소설', '에세이', '자기계발', '경제/경영', '과학기술', '역사철학', '기타'];
   const genreColors = {
-    '소설': '#7a9abf', '비소설': '#7dbf94', '자기계발': '#c8b06a',
-    '과학기술': '#9abf9a', '역사철학': '#c8b89a', '기타': '#5a585e'
+    '소설': '#7a9abf', '에세이': '#7dbf94', '자기계발': '#c8b06a',
+    '경제/경영': '#bf9a7a', '과학기술': '#9abf9a', '역사철학': '#c8b89a', '기타': '#5a585e'
   };
   const pieCanvas = document.getElementById('genre-pie');
   const pieEmpty  = document.getElementById('genre-pie-empty');
@@ -441,9 +443,12 @@ function drawGenrePie(books) {
   }
   pieCanvas.style.display = 'block'; pieEmpty.style.display = 'none';
   const ctx = pieCanvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1, S = 160;
+  const dpr = window.devicePixelRatio || 1;
+  // 부모 너비 기준으로 정사각형 유지 (최대 160px)
+  const S = Math.min(160, pieCanvas.parentElement.clientWidth || 160);
   pieCanvas.width = S * dpr; pieCanvas.height = S * dpr;
   pieCanvas.style.width = S + 'px'; pieCanvas.style.height = S + 'px';
+  pieCanvas.style.display = 'block'; // inline → block으로 하단 공백 제거
   ctx.scale(dpr, dpr); ctx.clearRect(0, 0, S, S);
   const cx = S / 2, cy = S / 2, r = 64, ir = 36;
   let angle = -Math.PI / 2;
@@ -521,7 +526,7 @@ function _drawMonthlyInner(books) {
     const bh = ch * (vals[i] / maxVal), y = pad.t + ch - bh;
     ctx.fillStyle = '#c8b89a';
     ctx.beginPath(); ctx.roundRect(x, y, bw, bh, [4, 4, 0, 0]); ctx.fill();
-    ctx.fillStyle = '#f0ede8'; ctx.font = 'bold 11px DM Mono,monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 12px DM Mono,monospace'; ctx.textAlign = 'center';
     ctx.fillText(vals[i] + '권', x + bw / 2, y - 5);
     ctx.fillStyle = '#5a585e'; ctx.font = '9px DM Mono,monospace';
     ctx.fillText(label, x + bw / 2, H - pad.b + 14);
@@ -569,16 +574,21 @@ function buildBookHTML(b, num) {
     </div>`;
 
   const pageInputHTML = b.status === 'reading'
-    ? `<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    ? `<div style="margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <input type="number" min="0" placeholder="현재 페이지"
           value="${b.currentPage || ''}"
-          style="width:90px;font-family:var(--mono);font-size:13px;font-weight:500;color:var(--blue);text-align:center;padding:4px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;outline:none;"
-          data-action="inlineUpdatePage" data-id="${b.id}" data-total="${b.totalPages || 0}">
+          style="width:82px;font-family:var(--mono);font-size:13px;font-weight:500;color:var(--blue);text-align:center;padding:4px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;outline:none;"
+          data-action="pageInput" data-id="${b.id}">
+        <span style="font-family:var(--mono);font-size:12px;color:var(--text3)">/</span>
         <input type="number" min="1" placeholder="전체 페이지"
           value="${b.totalPages || ''}"
-          style="width:100px;font-family:var(--mono);font-size:13px;color:var(--text2);text-align:center;padding:4px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;outline:none;"
-          data-action="inlineUpdateTotal" data-id="${b.id}">
+          style="width:90px;font-family:var(--mono);font-size:13px;color:var(--text2);text-align:center;padding:4px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;outline:none;"
+          data-action="totalInput" data-id="${b.id}">
         <span style="font-family:var(--mono);font-size:11px;color:var(--text3)">p</span>
+        <button data-action="savePageProgress" data-id="${b.id}"
+          style="padding:4px 10px;font-size:12px;font-family:var(--mono);background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;flex-shrink:0;transition:all 0.13s;"
+          onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">✓</button>
         <span id="ipct-${b.id}" style="font-family:var(--mono);font-size:12px;color:var(--blue);font-weight:500;min-width:32px;">${b.progressPct || 0}%</span>
       </div>
       <div style="margin-top:5px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;border:1px solid var(--border);">
@@ -620,7 +630,7 @@ function buildBookHTML(b, num) {
 }
 
 function renderBookList() {
-  const genres   = ['소설', '비소설', '자기계발', '과학기술', '역사철학', '기타'];
+  const genres   = ['소설', '에세이', '자기계발', '경제/경영', '과학기술', '역사철학', '기타'];
   const books    = getBooks();
   const filtered = books.filter(b => {
     const f = getCurrentFilter();
@@ -655,7 +665,7 @@ function renderDashboard() {
 
   const gapEl  = document.getElementById('kpi-gap');
   const gapSub = document.getElementById('kpi-gap-sub');
-  if (gap !== null && rated.length >= 3) {
+  if (gap !== null && rated.length >= 1) {
     gapEl.textContent = (gap > 0 ? '+' : '') + gap.toFixed(1) + '%p';
     gapEl.className   = 'kpi-val ' + (Math.abs(gap) < 5 ? '' : gap > 0 ? 'good' : 'warn');
     gapSub.textContent = gap > 5 ? '의외로 좋은 책을 고른다' : gap < -5 ? '기대가 현실보다 높은 편' : '기대와 현실이 잘 맞는다';
@@ -673,7 +683,7 @@ function renderDashboard() {
   } else {
     document.getElementById('gap-section').style.display = 'none';
     gapEl.textContent  = '—';
-    gapSub.textContent = `완독 ${Math.max(0, 3 - rated.length)}권 더 필요`;
+    gapSub.textContent = '평점을 입력하면 표시됩니다';
   }
 
   const ratedWithNum = rated.map(b => ({ ...b, num: books.length - books.indexOf(b) }));
@@ -697,7 +707,7 @@ function renderAll() {
 // stats
 // ════════════════════════════════
 
-const GENRES = ['소설', '비소설', '자기계발', '과학기술', '역사철학', '기타'];
+const GENRES = ['소설', '에세이', '자기계발', '경제/경영', '과학기술', '역사철학', '기타'];
 
 function switchStatTab(name) {
   document.getElementById('subpanel-stats1').style.display = name === 'stats1' ? 'block' : 'none';
@@ -791,7 +801,7 @@ function renderStats2() {
           </div>
         </div>
       </div>`).join('')
-    : '<div class="empty-state" style="padding:30px">완독한 책이 3권 이상이면 표시됩니다</div>';
+    : '<div class="empty-state" style="padding:30px">평점을 입력한 책이 있으면 표시됩니다</div>';
 
   document.getElementById('top-good').innerHTML = topHTML(topGood);
   document.getElementById('top-bad').innerHTML  = topHTML(topBad);
@@ -807,16 +817,16 @@ function renderStats2() {
     ? '<div class="empty-state" style="padding:20px">기록된 책이 없습니다</div>'
     : `<div style="margin-bottom:14px">
         <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:6px">
-          <span>완독률</span><span style="color:var(--text1);font-size:14px;font-weight:700">${pct}%</span>
+          <span>완독률</span><span style="color:#ffffff;font-size:15px;font-weight:800">${pct}%</span>
         </div>
         <div style="height:8px;background:var(--bg3);border-radius:4px;overflow:hidden">
           <div style="height:100%;width:${pct}%;background:var(--green);border-radius:4px;transition:width 0.4s"></div>
         </div>
       </div>
       <div style="display:flex;gap:16px;flex-wrap:wrap">
-        <div style="font-family:var(--mono);font-size:12px"><span style="color:var(--green)">●</span> 완독 <strong style="color:var(--text1)">${doneLen}권</strong></div>
-        <div style="font-family:var(--mono);font-size:12px"><span style="color:var(--blue)">●</span> 읽는 중 <strong style="color:var(--text1)">${reading}권</strong></div>
-        <div style="font-family:var(--mono);font-size:12px"><span style="color:var(--text3)">●</span> 읽고 싶다 <strong style="color:var(--text1)">${wishlist}권</strong></div>
+        <div style="font-family:var(--mono);font-size:12px"><span style="color:var(--green)">●</span> 완독 <strong style="color:#ffffff;font-weight:700">${doneLen}권</strong></div>
+        <div style="font-family:var(--mono);font-size:12px"><span style="color:var(--blue)">●</span> 읽는 중 <strong style="color:#ffffff;font-weight:700">${reading}권</strong></div>
+        <div style="font-family:var(--mono);font-size:12px"><span style="color:var(--text3)">●</span> 읽고 싶다 <strong style="color:#ffffff;font-weight:700">${wishlist}권</strong></div>
       </div>`;
 }
 
@@ -1051,11 +1061,49 @@ function clampRating(el) {
 function openGlossary()  { document.getElementById('glossary-modal').classList.add('open'); }
 function closeGlossary() { document.getElementById('glossary-modal').classList.remove('open'); }
 
+// ── 내보내기 / 불러오기 ──
+function exportData() {
+  const data = JSON.stringify(getBooks(), null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const date = new Date().toISOString().slice(0, 10);
+  a.href     = url;
+  a.download = `독서기록기_${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!Array.isArray(imported)) throw new Error();
+      if (!confirm(`${imported.length}권의 데이터를 불러옵니다.\n기존 데이터는 덮어씌워집니다. 계속할까요?`)) return;
+      setBooks(imported);
+      persist();
+      renderAll();
+      alert(`${imported.length}권 불러오기 완료!`);
+    } catch {
+      alert('올바른 형식의 파일이 아닙니다.');
+    }
+    e.target.value = ''; // 같은 파일 재선택 가능하게
+  };
+  reader.readAsText(file);
+}
+
 // [2] 인라인 상태 변경 (이벤트 위임에서 호출)
 function changeStatus(id, status) {
   updateBookById(id, () => ({ status }));
   persist();
   renderAll();
+  // 완독 선택 시 평점 모달 자동 오픈
+  if (status === 'done') {
+    setTimeout(() => openRateModal(id), 150);
+  }
 }
 
 // [2] 인라인 페이지 업데이트 (이벤트 위임에서 호출)
@@ -1106,24 +1154,41 @@ document.addEventListener('click', function (e) {
     case 'openRateModal': openRateModal(id);           break;
     case 'openAddModal':  openAddModal(id);            break;
     case 'deleteBook':    deleteBook(id);              break;
-    case 'changeStatus':  changeStatus(id, target.dataset.status); break;
-    case 'selectBook':    selectBook(Number(target.dataset.idx));   break;
+    case 'changeStatus':      changeStatus(id, target.dataset.status); break;
+    case 'selectBook':        selectBook(Number(target.dataset.idx));   break;
+    case 'savePageProgress': {
+      const card        = target.closest(`#bi-${id}`);
+      const currentPage = parseInt(card?.querySelector('[data-action="pageInput"]')?.value)  || 0;
+      const totalPages  = parseInt(card?.querySelector('[data-action="totalInput"]')?.value) || 0;
+      const progressPct = totalPages > 0 ? Math.min(Math.round(currentPage / totalPages * 100), 100) : 0;
+      updateBookById(Number(id), () => ({ currentPage, totalPages, progressPct }));
+      persist();
+      const pctEl = document.getElementById(`ipct-${id}`);
+      const barEl = document.getElementById(`ibar-${id}`);
+      if (pctEl) pctEl.textContent = progressPct + '%';
+      if (barEl) barEl.style.width = progressPct + '%';
+      // 저장 완료 피드백
+      target.textContent = '✓';
+      target.style.borderColor = 'var(--blue)';
+      target.style.color = 'var(--blue)';
+      setTimeout(() => {
+        target.style.borderColor = 'var(--border)';
+        target.style.color = 'var(--text2)';
+      }, 800);
+      break;
+    }
   }
 });
 
-// input 이벤트 위임 (인라인 페이지 입력)
-document.addEventListener('input', function (e) {
-  const target = e.target.closest('[data-action]');
+// input 이벤트 위임 (엔터 키로도 저장 가능)
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter') return;
+  const target = e.target.closest('[data-action="pageInput"],[data-action="totalInput"]');
   if (!target) return;
-  const action = target.dataset.action;
-  const id     = Number(target.dataset.id);
-
-  if (action === 'inlineUpdatePage') {
-    inlineUpdatePage(id, target.value, target.dataset.total);
-  }
-  if (action === 'inlineUpdateTotal') {
-    inlineUpdateTotal(id, target.value);
-  }
+  const id   = target.dataset.id;
+  const card = target.closest(`#bi-${id}`);
+  const btn  = card?.querySelector(`[data-action="savePageProgress"]`);
+  if (btn) btn.click();
 });
 
 
@@ -1146,6 +1211,7 @@ window.App = {
   setRating, clampRating,
   // 용어집
   openGlossary, closeGlossary,
+  exportData, importData,
   // 캘리브레이션 차트 필터
   setCalibFilter,
   // 책 검색
