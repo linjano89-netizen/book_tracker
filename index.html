@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>독서 기록기</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="header-title">📚 독서 기록기</div>
+  <div class="header-sub" id="header-count">0권</div>
+  <div class="header-right">
+    <button class="btn" onclick="App.openGlossary()">장르 안내</button>
+    <button class="btn primary" onclick="App.openAddModal()">+ 책 추가</button>
+  </div>
+</header>
+
+<!-- FAB: 모바일 전용 + 책 추가 버튼 -->
+<button class="fab" onclick="App.openAddModal()" aria-label="책 추가">+</button>
+
+<!-- ══════════ 장르 용어집 모달 ══════════ -->
+<div class="modal-bg" id="glossary-modal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-title">📖 장르 안내</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px;">
+      <div class="glossary-item">
+        <span class="genre-badge 소설" style="font-size:11px;padding:3px 9px">소설</span>
+        <span class="glossary-desc">작가가 상상력으로 만들어낸 이야기. 장편·단편·SF·판타지·추리 등 픽션 전반을 포함합니다.</span>
+      </div>
+      <div class="glossary-item">
+        <span class="genre-badge 비소설" style="font-size:11px;padding:3px 9px">비소설</span>
+        <span class="glossary-desc">실제 사건·인물·현상을 다룬 책. 에세이, 회고록, 르포, 저널리즘 등이 해당됩니다.</span>
+      </div>
+      <div class="glossary-item">
+        <span class="genre-badge 자기계발" style="font-size:11px;padding:3px 9px">자기계발</span>
+        <span class="glossary-desc">개인의 성장·습관·생산성·심리를 다루는 책. 실용적인 조언과 방법론을 제시합니다.</span>
+      </div>
+      <div class="glossary-item">
+        <span class="genre-badge 과학기술" style="font-size:11px;padding:3px 9px">과학기술</span>
+        <span class="glossary-desc">과학 이론, 공학, IT, 수학, 의학 등 전문 지식을 다루는 책. 교양 과학서도 포함됩니다.</span>
+      </div>
+      <div class="glossary-item">
+        <span class="genre-badge 역사철학" style="font-size:11px;padding:3px 9px">역사철학</span>
+        <span class="glossary-desc">역사적 사건·인물을 다루거나 삶과 존재에 대해 사유하는 책. 인문학 전반을 포함합니다.</span>
+      </div>
+      <div class="glossary-item">
+        <span class="genre-badge 기타" style="font-size:11px;padding:3px 9px">기타</span>
+        <span class="glossary-desc">위 장르에 딱 맞지 않는 책. 만화, 시집, 요리책, 여행기 등 다양한 형식이 해당됩니다.</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn primary" onclick="App.closeGlossary()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<nav class="tabs">
+  <button class="tab active" onclick="App.switchTab('dashboard')">대시보드</button>
+  <button class="tab" onclick="App.switchTab('books')">도서 목록</button>
+  <!-- 통계 드롭다운 탭 -->
+  <div class="tab-dropdown" id="stats-dropdown">
+    <button class="tab" id="stats-tab-btn" onclick="App.toggleStatsDropdown()">
+      통계 <span class="dropdown-arrow">▾</span>
+    </button>
+    <div class="dropdown-menu" id="stats-dropdown-menu">
+      <button class="dropdown-item" onclick="App.switchStatPanel('stats1')">📊 통계 1</button>
+      <button class="dropdown-item" onclick="App.switchStatPanel('stats2')">📈 통계 2</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════ 대시보드 ══════════ -->
+<div class="content">
+<div id="panel-dashboard" class="panel active">
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">전체</div>
+      <div class="kpi-val" id="kpi-total">0</div>
+      <div class="kpi-sub">기록된 책</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">완독</div>
+      <div class="kpi-val" id="kpi-done">0</div>
+      <div class="kpi-sub" id="kpi-done-sub">읽는 중 0권</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">평균 기대도</div>
+      <div class="kpi-val" id="kpi-avgexp">—</div>
+      <div class="kpi-sub">읽기 전 기대</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">평균 만족도</div>
+      <div class="kpi-val" id="kpi-avgrate">—</div>
+      <div class="kpi-sub">읽고 난 만족도</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">기대 갭</div>
+      <div class="kpi-val" id="kpi-gap">—</div>
+      <div class="kpi-sub" id="kpi-gap-sub">완독 3권 이상 필요</div>
+    </div>
+  </div>
+
+  <!-- 갭 게이지 -->
+  <div class="section-card" id="gap-section" style="display:none">
+    <div class="section-title">기대 vs 만족 갭 — 내 기대치가 실제 만족도와 얼마나 다른가</div>
+    <div class="gap-bar-wrap">
+      <div class="gap-label">
+        <span>기대 과잉 (실망했다)</span>
+        <span id="gap-desc">계산 중...</span>
+        <span>기대 과소 (의외로 좋았다)</span>
+      </div>
+      <div class="gap-bar-bg">
+        <div class="gap-center"></div>
+        <div class="gap-marker" id="gap-marker" style="left:50%"></div>
+      </div>
+    </div>
+    <div style="font-size:12px; color:var(--text3); font-family:var(--mono); margin-top:14px;" id="gap-explain"></div>
+  </div>
+
+  <!-- calibration 차트 -->
+  <div class="section-card">
+    <div class="section-title">시간순 기대도 vs 만족도 추이</div>
+    <div class="calib-chart">
+      <canvas id="calib-canvas" height="180"></canvas>
+      <div class="calib-empty-msg" id="calib-empty">
+        <span>완독한 책이 3권 이상이면 차트가 나타납니다</span>
+      </div>
+      <div class="calib-tooltip" id="calib-tooltip"></div>
+    </div>
+    <div style="font-size:11px; color:var(--text3); font-family:var(--mono); margin-top:8px;">
+      점선이 기대도, 실선이 만족도입니다. 실선이 점선 위에 있을수록 기대보다 좋았던 책입니다.
+    </div>
+  </div>
+
+  <!-- 최근 5권 -->
+  <div class="section-card">
+    <div class="section-title">최근 추가 5권</div>
+    <div id="recent-list" class="book-list"></div>
+  </div>
+
+</div>
+
+<!-- ══════════ 도서 목록 ══════════ -->
+<div id="panel-books" class="panel">
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="App.setFilter('all',this)">전체</button>
+    <button class="filter-btn" onclick="App.setFilter('wishlist',this)">읽고 싶다</button>
+    <button class="filter-btn" onclick="App.setFilter('reading',this)">읽는 중</button>
+    <button class="filter-btn" onclick="App.setFilter('done',this)">완독</button>
+    <button class="filter-btn" onclick="App.setFilter('소설',this)">소설</button>
+    <button class="filter-btn" onclick="App.setFilter('비소설',this)">비소설</button>
+    <button class="filter-btn" onclick="App.setFilter('자기계발',this)">자기계발</button>
+    <button class="filter-btn" onclick="App.setFilter('과학기술',this)">과학기술</button>
+    <button class="filter-btn" onclick="App.setFilter('역사철학',this)">역사철학</button>
+    <button class="filter-btn" onclick="App.setFilter('기타',this)">기타</button>
+  </div>
+  <div id="book-list" class="book-list">
+    <div class="empty-state">아직 기록된 책이 없습니다.<br>+ 책 추가 버튼으로 시작하세요.</div>
+  </div>
+</div>
+
+<!-- ══════════ 통계 ══════════ -->
+<div id="panel-stats" class="panel">
+  <!-- 서브탭 제목 -->
+  <div style="margin-bottom:20px; font-family:var(--mono); font-size:13px; color:var(--accent); font-weight:500;" id="stat-panel-label">📊 통계 1</div>
+
+  <!-- 통계 1 -->
+  <div id="subpanel-stats1">
+    <div class="section-card">
+      <div class="section-title">장르 분포</div>
+      <div class="genre-chart-wrap" style="display:flex; align-items:center; gap:32px; flex-wrap:wrap;">
+        <div style="position:relative; flex-shrink:0;">
+          <canvas id="genre-pie" width="160" height="160"></canvas>
+          <div id="genre-pie-empty" style="display:none; width:160px; height:160px; align-items:center; justify-content:center; font-family:var(--mono); font-size:12px; color:var(--text3); text-align:center;">데이터 없음</div>
+        </div>
+        <div id="genre-legend" style="display:flex; flex-direction:column; gap:8px; flex:1; min-width:160px;"></div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">장르별 성과</div>
+      <div class="stat-table-wrap">
+      <table class="stat-table">
+        <thead>
+          <tr>
+            <th>장르</th><th>권수</th><th>평균 기대도</th><th>평균 만족도</th><th>갭</th>
+          </tr>
+        </thead>
+        <tbody id="genre-stat-body"></tbody>
+      </table>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">기대도 구간별 만족도</div>
+      <div class="stat-table-wrap">
+      <table class="stat-table">
+        <thead>
+          <tr>
+            <th>기대도 구간</th><th>권수</th><th>평균 만족도</th><th>갭 (기대-만족)</th>
+          </tr>
+        </thead>
+        <tbody id="exp-stat-body"></tbody>
+      </table>
+      </div>
+    </div>
+  </div><!-- /subpanel-stats1 -->
+
+  <!-- 통계 2 -->
+  <div id="subpanel-stats2" style="display:none">
+    <div class="section-card">
+      <div class="section-title">🎉 기대보다 좋았던 책 TOP 3</div>
+      <div id="top-good" class="book-list"></div>
+    </div>
+    <div class="section-card">
+      <div class="section-title">😞 기대보다 실망한 책 TOP 3</div>
+      <div id="top-bad" class="book-list"></div>
+    </div>
+    <div class="section-card">
+      <div class="section-title">월별 완독 권수</div>
+      <canvas id="monthly-bar" height="160" style="width:100%"></canvas>
+      <div id="monthly-empty" style="display:none; text-align:center; padding:30px; font-family:var(--mono); font-size:12px; color:var(--text3)">완독한 책이 없습니다</div>
+    </div>
+    <div class="section-card">
+      <div class="section-title">완독률</div>
+      <div id="completion-stat"></div>
+    </div>
+  </div><!-- /subpanel-stats2 -->
+
+</div><!-- /panel-stats -->
+
+<!-- ══════════ 책 추가 모달 ══════════ -->
+<div class="modal-bg" id="add-modal">
+  <div class="modal">
+    <div class="modal-title" id="add-modal-title">책 추가</div>
+
+    <!-- 카카오 책 검색 -->
+    <div class="form-group full" style="margin-bottom:10px; position:relative;">
+      <label>책 검색 <span style="color:var(--text3);font-weight:400">— 제목으로 검색해서 자동 입력</span></label>
+      <div style="display:flex; gap:8px; margin-top:4px;">
+        <input type="text" id="f-search" placeholder="책 제목 검색..." oninput="App.onSearchInput(this.value)" autocomplete="off">
+        <button type="button" class="btn" onclick="App.searchBook()" style="white-space:nowrap; flex-shrink:0;">검색</button>
+      </div>
+      <!-- 검색 결과 드롭다운 -->
+      <div id="search-dropdown" class="search-dropdown" style="display:none;"></div>
+    </div>
+
+    <!-- 선택된 책 미리보기 -->
+    <div id="book-preview" style="display:none; margin-bottom:14px; padding:10px 12px; background:var(--bg3); border-radius:8px; border:1px solid var(--border); display:none; gap:12px; align-items:center;">
+      <img id="preview-cover" src="" alt="표지" style="width:44px; height:62px; object-fit:cover; border-radius:4px; flex-shrink:0;">
+      <div>
+        <div id="preview-title" style="font-size:13px; font-weight:600; color:var(--text1); margin-bottom:2px;"></div>
+        <div id="preview-author" style="font-size:11px; color:var(--text3); font-family:var(--mono);"></div>
+        <div id="preview-pages" style="font-size:11px; color:var(--accent); font-family:var(--mono); margin-top:2px;"></div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group full">
+        <label>제목</label>
+        <input type="text" id="f-title" placeholder="책 제목을 입력하세요">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>저자</label>
+        <input type="text" id="f-author" placeholder="저자">
+      </div>
+      <div class="form-group">
+        <label>장르</label>
+        <select id="f-genre">
+          <option value="소설">소설</option>
+          <option value="비소설">비소설</option>
+          <option value="자기계발" selected>자기계발</option>
+          <option value="과학기술">과학기술</option>
+          <option value="역사철학">역사철학</option>
+          <option value="기타">기타</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px;">
+      <label>읽기 전 기대도 (%) <span style="color:var(--text3);font-weight:400;letter-spacing:0">— 숫자 직접 입력 가능</span></label>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:4px;">
+        <input type="number" id="f-expect" min="1" max="100" value="50"
+          style="width:74px; font-family:var(--mono); font-size:20px; font-weight:500; color:var(--accent); text-align:center; padding:6px 8px;"
+          oninput="App.clampExpect(this)">
+        <div style="display:flex; gap:5px; flex-wrap:wrap;">
+          <button type="button" class="quick-btn" onclick="App.setExpect(20)">20%</button>
+          <button type="button" class="quick-btn" onclick="App.setExpect(40)">40%</button>
+          <button type="button" class="quick-btn" onclick="App.setExpect(60)">60%</button>
+          <button type="button" class="quick-btn" onclick="App.setExpect(80)">80%</button>
+          <button type="button" class="quick-btn" onclick="App.setExpect(90)">90%</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px;">
+      <label>상태</label>
+      <select id="f-status" onchange="App.onStatusChange(this.value)">
+        <option value="wishlist">읽고 싶다</option>
+        <option value="reading">읽는 중</option>
+        <option value="done">완독</option>
+      </select>
+    </div>
+
+    <!-- 읽는 중일 때만 표시: 현재 페이지 -->
+    <div id="reading-progress-wrap" style="display:none; margin-bottom:14px;">
+      <label style="font-size:11px; color:var(--text3); font-family:var(--mono); letter-spacing:0.5px;">현재 페이지</label>
+      <div style="display:flex; gap:10px; align-items:center; margin-top:4px; flex-wrap:wrap;">
+        <input type="number" id="f-current-page" min="0" placeholder="0"
+          style="width:80px; font-family:var(--mono); font-size:18px; font-weight:500; color:var(--blue); text-align:center; padding:6px 8px;"
+          oninput="App.updateProgress()">
+        <span style="font-family:var(--mono); font-size:13px; color:var(--text3);">/ <span id="f-total-pages-label">—</span> 페이지</span>
+        <!-- 진행률 바 -->
+        <div style="flex:1; min-width:120px;">
+          <div style="display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:var(--text3); margin-bottom:4px;">
+            <span>진행률</span>
+            <span id="f-progress-pct" style="color:var(--blue); font-weight:500;">0%</span>
+          </div>
+          <div style="height:6px; background:var(--bg3); border-radius:3px; overflow:hidden; border:1px solid var(--border);">
+            <div id="f-progress-bar" style="height:100%; width:0%; background:var(--blue); border-radius:3px; transition:width 0.3s;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px;">
+      <label>한마디 (선택)</label>
+      <input type="text" id="f-memo" placeholder="이 책에 대해 한마디">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn" onclick="App.closeAddModal()">취소</button>
+      <button class="btn primary" onclick="App.saveBook()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 평점 입력 모달 ══════════ -->
+<div class="modal-bg" id="rate-modal">
+  <div class="modal">
+    <div class="modal-title">만족도 기록</div>
+    <div id="rate-modal-desc" style="font-size:13px; color:var(--text2); margin-bottom:18px; line-height:1.6;"></div>
+
+    <div class="form-group" style="margin-bottom:18px;">
+      <label>만족도 (%) <span style="color:var(--text3);font-weight:400;letter-spacing:0">— 숫자 직접 입력 가능</span></label>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:4px;">
+        <input type="number" id="f-rating" min="1" max="100" value=""
+          style="width:74px; font-family:var(--mono); font-size:20px; font-weight:500; color:var(--yellow); text-align:center; padding:6px 8px;"
+          oninput="App.clampRating(this)">
+        <div style="display:flex; gap:5px; flex-wrap:wrap;">
+          <button type="button" class="quick-btn" onclick="App.setRating(20)">20%</button>
+          <button type="button" class="quick-btn" onclick="App.setRating(40)">40%</button>
+          <button type="button" class="quick-btn" onclick="App.setRating(60)">60%</button>
+          <button type="button" class="quick-btn" onclick="App.setRating(80)">80%</button>
+          <button type="button" class="quick-btn" onclick="App.setRating(90)">90%</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px;">
+      <label>읽고 난 소감 (선택)</label>
+      <textarea id="rate-review" placeholder="어떤 책이었나요?"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn" onclick="App.closeRateModal()">취소</button>
+      <button class="btn primary" onclick="App.submitRate()">기록</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /.content -->
+
+<script src="app.js"></script>
+</body>
+</html>
