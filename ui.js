@@ -15,9 +15,10 @@ import {
 let _renderAll      = () => {};
 let _renderBookList = () => {};
 
-export function injectRenderers(renderAll, renderBookList) {
+export function injectRenderers(renderAll, renderBookList, statFns) {
   _renderAll      = renderAll;
   _renderBookList = renderBookList;
+  if (statFns) _statFns = statFns;
 }
 
 function escHtml(s) {
@@ -77,6 +78,15 @@ export function switchTab(name, fns) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   closeStatsDropdown();
+
+  // 모바일 서브탭: stats일 때만 표시
+  const mobileSubtabs = document.getElementById('mobile-stat-subtabs');
+  if (name === 'stats') {
+    mobileSubtabs.classList.add('visible');
+  } else {
+    mobileSubtabs.classList.remove('visible');
+  }
+
   document.getElementById('panel-' + name).classList.add('active');
   // 탭 버튼: dashboard=0, books=1, stats dropdown btn
   const tabs = document.querySelectorAll('.tabs .tab');

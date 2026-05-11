@@ -19,7 +19,7 @@ function renderAll() {
   if (active?.id === 'panel-books')     renderBookList();
   if (active?.id === 'panel-stats')     renderStats();
 }
-injectRenderers(renderAll, renderBookList);
+injectRenderers(renderAll, renderBookList, { renderStats, renderStats2 });
 
 // ── 탭 전환 래퍼 (fns 번들 전달) ──
 const tabFns = { renderDashboard, renderBookList, renderStats, switchStatTab };
@@ -29,7 +29,14 @@ window.App = {
   switchTab:           (name) => switchTab(name, tabFns),
   switchStatTab:       (name) => { switchStatTab(name); },
   switchStatPanel:     (name) => switchStatPanel(name),
-  toggleStatsDropdown: toggleStatsDropdown,
+  // 모바일: 드롭다운 대신 탭 전환, 데스크탑: 드롭다운 토글
+  toggleStatsDropdown: () => {
+    if (window.innerWidth <= 640) {
+      switchTab('stats', tabFns);
+    } else {
+      toggleStatsDropdown();
+    }
+  },
   openAddModal,
   closeAddModal,
   saveBook,

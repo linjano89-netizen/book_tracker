@@ -59,7 +59,7 @@
 <nav class="tabs">
   <button class="tab active" onclick="App.switchTab('dashboard')">대시보드</button>
   <button class="tab" onclick="App.switchTab('books')">도서 목록</button>
-  <!-- 통계 드롭다운 탭 -->
+  <!-- 통계 드롭다운 탭 (데스크탑) -->
   <div class="tab-dropdown" id="stats-dropdown">
     <button class="tab" id="stats-tab-btn" onclick="App.toggleStatsDropdown()">
       통계 <span class="dropdown-arrow">▾</span>
@@ -70,6 +70,12 @@
     </div>
   </div>
 </nav>
+
+<!-- 모바일 전용: 통계 서브탭 행 -->
+<div class="mobile-stat-subtabs" id="mobile-stat-subtabs">
+  <button class="mobile-stat-btn active" id="mst-stats1" onclick="App.switchStatPanel('stats1')">📊 통계 1</button>
+  <button class="mobile-stat-btn" id="mst-stats2" onclick="App.switchStatPanel('stats2')">📈 통계 2</button>
+</div>
 
 <!-- ══════════ 대시보드 ══════════ -->
 <div class="content">
@@ -309,21 +315,31 @@
 
     <!-- 읽는 중일 때만 표시: 현재 페이지 -->
     <div id="reading-progress-wrap" style="display:none; margin-bottom:14px;">
-      <label style="font-size:11px; color:var(--text3); font-family:var(--mono); letter-spacing:0.5px;">현재 페이지</label>
-      <div style="display:flex; gap:10px; align-items:center; margin-top:4px; flex-wrap:wrap;">
-        <input type="number" id="f-current-page" min="0" placeholder="0"
-          style="width:80px; font-family:var(--mono); font-size:18px; font-weight:500; color:var(--blue); text-align:center; padding:6px 8px;"
-          oninput="App.updateProgress()">
-        <span style="font-family:var(--mono); font-size:13px; color:var(--text3);">/ <span id="f-total-pages-label">—</span> 페이지</span>
-        <!-- 진행률 바 -->
-        <div style="flex:1; min-width:120px;">
-          <div style="display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:var(--text3); margin-bottom:4px;">
-            <span>진행률</span>
-            <span id="f-progress-pct" style="color:var(--blue); font-weight:500;">0%</span>
-          </div>
-          <div style="height:6px; background:var(--bg3); border-radius:3px; overflow:hidden; border:1px solid var(--border);">
-            <div id="f-progress-bar" style="height:100%; width:0%; background:var(--blue); border-radius:3px; transition:width 0.3s;"></div>
-          </div>
+      <label style="font-size:11px; color:var(--text3); font-family:var(--mono); letter-spacing:0.5px;">독서 진행률</label>
+      <div style="display:flex; gap:8px; align-items:center; margin-top:6px; flex-wrap:wrap;">
+        <div style="display:flex; flex-direction:column; gap:3px; align-items:center;">
+          <span style="font-family:var(--mono);font-size:9px;color:var(--text3);">현재</span>
+          <input type="number" id="f-current-page" min="0" placeholder="0"
+            style="width:72px; font-family:var(--mono); font-size:18px; font-weight:500; color:var(--blue); text-align:center; padding:6px 8px;"
+            oninput="App.updateProgress()">
+        </div>
+        <span style="font-family:var(--mono); font-size:18px; color:var(--text3); padding-top:16px;">/</span>
+        <div style="display:flex; flex-direction:column; gap:3px; align-items:center;">
+          <span style="font-family:var(--mono);font-size:9px;color:var(--text3);">전체 페이지 <span style="color:var(--accent)">직접 입력 가능</span></span>
+          <input type="number" id="f-total-pages" min="1" placeholder="총 페이지"
+            style="width:100px; font-family:var(--mono); font-size:18px; font-weight:500; color:var(--text2); text-align:center; padding:6px 8px;"
+            oninput="App.updateProgress()">
+        </div>
+        <span style="font-family:var(--mono); font-size:13px; color:var(--text3); padding-top:16px;">p</span>
+      </div>
+      <!-- 진행률 바 -->
+      <div style="margin-top:10px;">
+        <div style="display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:var(--text3); margin-bottom:4px;">
+          <span>진행률</span>
+          <span id="f-progress-pct" style="color:var(--blue); font-weight:500;">0%</span>
+        </div>
+        <div style="height:6px; background:var(--bg3); border-radius:3px; overflow:hidden; border:1px solid var(--border);">
+          <div id="f-progress-bar" style="height:100%; width:0%; background:var(--blue); border-radius:3px; transition:width 0.3s;"></div>
         </div>
       </div>
     </div>
